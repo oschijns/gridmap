@@ -1,0 +1,25 @@
+[package]
+name = "gridmap"
+description = "library for handling infinite multi-dimensional grids of cells"
+version = "0.0.1"
+edition = "2024"
+authors = ["Olivier Schyns <https://github.com/oschijns>"]
+repository = "https://github.com/oschijns/gridmap"
+
+[features]
+
+default = []
+std = ["ndarray/std", "num-traits/std"]
+alloc = ["hashbrown/alloc"]
+
+# Allow parallel processing
+rayon = ["ndarray/rayon", "hashbrown/rayon"]
+
+# Allow serialization
+serde = ["ndarray/serde", "hashbrown/serde"]
+
+[dependencies]
+ndarray = { version = "0.16", default-features = false }
+hashbrown = { version = "0.15" }
+num-traits = { version = "0.2", default-features = false }
+delegate = "0.13"
