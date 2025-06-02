@@ -5,6 +5,7 @@ version = "0.0.1"
 edition = "2024"
 authors = ["Olivier Schyns <https://github.com/oschijns>"]
 repository = "https://github.com/oschijns/gridmap"
+license = "MIT"
 
 [features]
 
