@@ -7,12 +7,12 @@ use crate::{
 use ndarray::{Dim, Dimension, Ix};
 
 /// Get iterator over the grid map
-impl<A, const D: usize, const S: Ix, Ic> GridMap<A, D, S, Ic>
+impl<A, const D: usize, Ic> GridMap<A, D, Ic>
 where
     A: Cell,
 {
     /// Create an iterator over all the cells of the chunks of the GridMap
-    pub fn iter(&self) -> Iter<'_, A, D, S, Ic> {
+    pub fn iter(&self) -> Iter<'_, A, D, Ic> {
         Iter {
             chunks: self.map.iter(),
             cells: None,
@@ -20,7 +20,7 @@ where
     }
 
     /// Create an iterator over all the cells of the chunks of the GridMap
-    pub fn iter_mut(&mut self) -> IterMut<'_, A, D, S, Ic> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, A, D, Ic> {
         IterMut {
             chunks: self.map.iter_mut(),
             cells: None,
@@ -29,7 +29,7 @@ where
 }
 
 /// Iterator over all the cells of the chunks of the GridMap
-pub struct Iter<'i, A, const D: usize, const S: Ix, Ic = isize> {
+pub struct Iter<'i, A, const D: usize, Ic = isize> {
     /// Iterator over the chunks
     chunks: hashbrown::hash_map::Iter<'i, [Ic; D], Chunk<A, D>>,
 
@@ -38,7 +38,7 @@ pub struct Iter<'i, A, const D: usize, const S: Ix, Ic = isize> {
 }
 
 /// Access next element of the iterator
-impl<'i, A, const D: usize, const S: Ix, Ic> Iterator for Iter<'i, A, D, S, Ic>
+impl<'i, A, const D: usize, Ic> Iterator for Iter<'i, A, D, Ic>
 where
     A: Cell,
     Dim<[Ix; D]>: Dimension,
@@ -68,7 +68,7 @@ where
 }
 
 /// Mutable Iiterator over all the cells of the chunks of the GridMap
-pub struct IterMut<'i, A, const D: usize, const S: Ix, Ic = isize> {
+pub struct IterMut<'i, A, const D: usize, Ic = isize> {
     /// Iterator over the chunks
     chunks: hashbrown::hash_map::IterMut<'i, [Ic; D], Chunk<A, D>>,
 
@@ -77,7 +77,7 @@ pub struct IterMut<'i, A, const D: usize, const S: Ix, Ic = isize> {
 }
 
 /// Access next element of the iterator
-impl<'i, A, const D: usize, const S: Ix, Ic> Iterator for IterMut<'i, A, D, S, Ic>
+impl<'i, A, const D: usize, Ic> Iterator for IterMut<'i, A, D, Ic>
 where
     A: Cell,
     Dim<[Ix; D]>: Dimension,

@@ -1,19 +1,19 @@
 //! Indexing to access cells in the GridMap
 
 use super::GridMap;
-use crate::cell::Cell;
+use crate::{cell::Cell, gridmap::make_chunk};
 use core::{
     hash::Hash,
     ops::{Index, IndexMut},
 };
-use ndarray::{Array, Dim, Dimension, IntoDimension, Ix};
-use num_traits::{AsPrimitive, Euclid};
+use ndarray::{Dim, Dimension, IntoDimension, Ix};
+use num_traits::{AsPrimitive, ConstZero, Euclid};
 
 /// Indexing to access cells in the GridMap
-impl<A, const D: usize, const S: Ix, Ic, I> Index<[I; D]> for GridMap<A, D, S, Ic>
+impl<A, const D: usize, Ic, I> Index<[I; D]> for GridMap<A, D, Ic>
 where
     A: Cell,
-    Ic: Eq + Hash + From<I>,
+    Ic: ConstZero + Eq + Hash + From<I>,
     I: Euclid + From<Ix> + AsPrimitive<Ix>,
     [Ix; D]: IntoDimension<Dim = Dim<[Ix; D]>>,
     Dim<[Ix; D]>: Dimension,
@@ -22,50 +22,57 @@ where
 
     /// Get a reference to the cell at the given index
     fn index(&self, index: [I; D]) -> &Self::Output {
-        let (chunk_index, cell_index) = Self::split_index(index);
+        let (chunk_index, cell_index) = self.split_index(index);
         self.index_chunk_cell(&chunk_index, cell_index)
     }
 }
 
 /// Indexing to mutable access cells in the GridMap
-impl<A, const D: usize, const S: Ix, Ic, I> IndexMut<[I; D]> for GridMap<A, D, S, Ic>
+impl<A, const D: usize, Ic, I> IndexMut<[I; D]> for GridMap<A, D, Ic>
 where
     A: Cell + Default,
-    Ic: Eq + Hash + From<I>,
+    Ic: ConstZero + Eq + Hash + From<I>,
     I: Euclid + From<Ix> + AsPrimitive<Ix>,
     [Ix; D]: IntoDimension<Dim = Dim<[Ix; D]>>,
     Dim<[Ix; D]>: Dimension,
 {
     /// Get a mutable reference to the cell at the given index
     fn index_mut(&mut self, index: [I; D]) -> &mut Self::Output {
-        let (chunk_index, cell_index) = Self::split_index(index);
+        let (chunk_index, cell_index) = self.split_index(index);
         self.index_chunk_cell_mut(chunk_index, cell_index)
     }
 }
 
 /// Index a cell knowing chunk index and cell index
-impl<A, const D: usize, const S: Ix, Ic> GridMap<A, D, S, Ic>
+impl<A, const D: usize, Ic> GridMap<A, D, Ic>
 where
     A: Cell,
     [Ix; D]: IntoDimension<Dim = Dim<[Ix; D]>>,
+    Ic: ConstZero,
 {
     /// Split the index into chunk index and cell index
     #[inline]
-    pub fn split_index<I>(index: [I; D]) -> ([Ic; D], Dim<[Ix; D]>)
+    pub fn split_index<I>(&self, index: [I; D]) -> ([Ic; D], Dim<[Ix; D]>)
     where
         Ic: From<I>,
         I: Euclid + From<Ix> + AsPrimitive<Ix>,
     {
-        let dim = I::from(S);
-        let data = index.map(|i| i.div_rem_euclid(&dim));
-        let chunk_index = data.map(|(q, _)| Ic::from(q));
-        let cell_index = data.map(|(_, r)| r.as_());
+        // prepare arrays to store the results
+        let mut chunk_index = [Ic::ZERO; D];
+        let mut cell_index = [Ix::ZERO; D];
+
+        // for each component
+        for i in 0..D {
+            let (ch, cl) = index[i].div_rem_euclid(&self.chunk_dim[i].into());
+            chunk_index[i] = Ic::from(ch);
+            cell_index[i] = cl.as_();
+        }
         (chunk_index, Dim(cell_index))
     }
 }
 
 /// Index a cell knowing chunk index and cell index
-impl<A, const D: usize, const S: usize, Ic> GridMap<A, D, S, Ic>
+impl<A, const D: usize, Ic> GridMap<A, D, Ic>
 where
     A: Cell,
     Ic: Eq + Hash,
@@ -86,7 +93,7 @@ where
 }
 
 /// Index a cell knowing chunk index and cell index
-impl<A, const D: usize, const S: usize, Ic> GridMap<A, D, S, Ic>
+impl<A, const D: usize, Ic> GridMap<A, D, Ic>
 where
     A: Cell + Default,
     Ic: Eq + Hash,
@@ -102,16 +109,7 @@ where
         let chunk = self
             .map
             .entry(chunk_index)
-            .or_insert_with(make_chunk::<A, D, S>);
+            .or_insert_with(|| make_chunk::<A, D>(&self.chunk_dim));
         chunk.index_mut(cell_index)
     }
-}
-
-fn make_chunk<A, const D: usize, const S: Ix>() -> Array<A, Dim<[Ix; D]>>
-where
-    A: Default,
-    [Ix; D]: IntoDimension<Dim = Dim<[Ix; D]>>,
-    Dim<[Ix; D]>: Dimension,
-{
-    Array::default(Dim([S; D]))
 }
