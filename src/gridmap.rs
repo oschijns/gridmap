@@ -68,6 +68,7 @@ where
     }
 }
 
+/// Build a chunk with the given dimensions
 fn make_chunk<A, const D: usize>(chunk_dim: &[Ix; D]) -> Array<A, Dim<[Ix; D]>>
 where
     A: Default,

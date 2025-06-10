@@ -8,6 +8,3 @@ pub mod occupied;
 
 /// Iterator over all non-empty cells with corresponding index
 pub mod indexed;
-
-/// Iterator over multiple neighboring cells
-pub mod kernel;

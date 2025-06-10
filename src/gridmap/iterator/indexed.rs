@@ -4,7 +4,6 @@ use crate::{
     cell::Cell,
     gridmap::{Chunk, GridMap},
 };
-use core::ops::AddAssign;
 use ndarray::{Dim, Dimension, IntoDimension, Ix};
 use num_traits::{AsPrimitive, ConstZero};
 
@@ -54,10 +53,8 @@ pub struct Iter<'i, A, const D: usize, Ic = isize> {
 impl<'i, A, const D: usize, Ic> Iterator for Iter<'i, A, D, Ic>
 where
     A: Cell,
-    Ic: Copy + AsPrimitive<isize>,
+    Ic: AsPrimitive<isize>,
     Dim<[Ix; D]>: Dimension,
-    [isize; D]: IntoDimension<Dim = Dim<[isize; D]>>,
-    Dim<[isize; D]>: AddAssign<Dim<[Ix; D]>>,
 {
     type Item = ([isize; D], &'i A);
 
@@ -104,10 +101,8 @@ pub struct IterMut<'i, A, const D: usize, Ic = isize> {
 impl<'i, A, const D: usize, Ic> Iterator for IterMut<'i, A, D, Ic>
 where
     A: Cell,
-    Ic: Copy + AsPrimitive<isize>,
+    Ic: AsPrimitive<isize>,
     Dim<[Ix; D]>: Dimension,
-    [isize; D]: IntoDimension<Dim = Dim<[isize; D]>>,
-    Dim<[isize; D]>: AddAssign<Dim<[Ix; D]>>,
 {
     type Item = ([isize; D], &'i mut A);
 
@@ -144,8 +139,6 @@ fn compute_index<const D: usize>(
 ) -> [isize; D]
 where
     Dim<[Ix; D]>: Dimension,
-    [isize; D]: IntoDimension<Dim = Dim<[isize; D]>>,
-    Dim<[isize; D]>: AddAssign<Dim<[Ix; D]>>,
 {
     // convert cell index into an indexable form
     let cell_index: Dim<[Ix; D]> = cell_index.into_dimension();
