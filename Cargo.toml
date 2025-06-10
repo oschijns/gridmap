@@ -9,7 +9,7 @@ license = "MIT"
 
 [features]
 
-default = []
+default = ["std"]
 std = ["ndarray/std", "num-traits/std"]
 alloc = ["hashbrown/alloc"]
 

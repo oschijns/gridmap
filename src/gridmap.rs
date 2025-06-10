@@ -3,6 +3,9 @@
 /// Basic operations available on the GridMap
 pub mod base;
 
+/// Compute the boundaries of a gridmap
+pub mod boundaries;
+
 /// Indexing to access cells in the GridMap
 pub mod indexing;
 
