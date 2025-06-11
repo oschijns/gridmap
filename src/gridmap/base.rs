@@ -110,7 +110,7 @@ where
 
     /// Clean up chunks that should be freed
     #[inline]
-    pub fn clean_up(&mut self)
+    pub fn prune(&mut self)
     where
         Ic: Eq + Hash,
         Dim<[Ix; D]>: Dimension,

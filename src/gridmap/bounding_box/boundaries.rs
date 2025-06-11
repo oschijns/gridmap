@@ -1,25 +1,16 @@
-//! Compute the boundaries of a gridmap
+//! Compute the boundaries of the gridmap
 
-use super::GridMap;
-use crate::cell::Cell;
+use super::BoundingBox;
+use crate::{cell::Cell, gridmap::GridMap};
 use ndarray::{Dim, Dimension, IntoDimension, Ix};
 use num_traits::AsPrimitive;
-
-/// Boundaries
-pub struct Boundaries<const D: usize> {
-    /// starting point of the box
-    pub start: [isize; D],
-
-    /// ending point of the box
-    pub end: [isize; D],
-}
 
 impl<A, const D: usize, Ic> GridMap<A, D, Ic>
 where
     A: Cell,
 {
     /// Find the boundaries of the gridmap assuming empty chunks have been cleaned up.
-    pub fn boundaries(&self) -> Boundaries<D>
+    pub fn boundaries(&self) -> BoundingBox<D>
     where
         A: Clone,
         Ic: AsPrimitive<isize>,
@@ -89,7 +80,7 @@ where
             }
         }
 
-        Boundaries {
+        BoundingBox {
             start: cell_0,
             end: cell_1,
         }

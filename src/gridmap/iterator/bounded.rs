@@ -3,7 +3,7 @@
 use super::{compute_cell_index, from_chunk_to_cell_index};
 use crate::{
     cell::Cell,
-    gridmap::{Chunk, GridMap},
+    gridmap::{Chunk, GridMap, bounding_box::BoundingBox},
 };
 use ndarray::{Dim, Dimension, Ix};
 use num_traits::{AsPrimitive, ConstZero};
@@ -11,26 +11,28 @@ use num_traits::{AsPrimitive, ConstZero};
 /// Get iterator over the grid map
 impl<A, const D: usize, Ic> GridMap<A, D, Ic>
 where
-    Ic: ConstZero,
     A: Cell,
+    Ic: ConstZero,
 {
     /// Create an iterator over all the cells of the chunks of the GridMap
-    pub fn indexed_iter(&self) -> Iter<'_, A, D, Ic> {
+    pub fn bounded_iter(&self, bounds: BoundingBox<D>) -> Iter<'_, A, D, Ic> {
         Iter {
             chunk_dim: self.chunk_dim,
             chunks: self.map.iter(),
             cells: None,
             cache: [0; D],
+            bounds,
         }
     }
 
     /// Create an iterator over all the cells of the chunks of the GridMap
-    pub fn indexed_iter_mut(&mut self) -> IterMut<'_, A, D, Ic> {
+    pub fn bounded_iter_mut(&mut self, bounds: BoundingBox<D>) -> IterMut<'_, A, D, Ic> {
         IterMut {
             chunk_dim: self.chunk_dim,
             chunks: self.map.iter_mut(),
             cells: None,
             cache: [0; D],
+            bounds,
         }
     }
 }
@@ -46,8 +48,11 @@ pub struct Iter<'i, A, const D: usize, Ic = isize> {
     /// Iterator over the cells of the current chunk
     cells: Option<ndarray::iter::IndexedIter<'i, A, Dim<[Ix; D]>>>,
 
-    /// Cache the index of the current chunk in cell coordinates
+    /// Cache the index of the current chunk
     cache: [isize; D],
+
+    /// Boundaries to look for cells
+    bounds: BoundingBox<D>,
 }
 
 /// Access next element of the iterator
@@ -60,25 +65,34 @@ where
     type Item = ([isize; D], &'i A);
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
+        'outer: loop {
             // Do we have an iterator over the cells of the current chunk?
             if let Some(cells) = &mut self.cells {
                 // Try to find a cell that is not null
                 for (cell_index, cell) in cells.by_ref() {
                     if !cell.is_null() {
                         let index = compute_cell_index::<D>(&self.cache, cell_index);
-                        return Some((index, cell));
+                        // TODO: create a view over the array to remove this check
+                        if self.bounds.contains(&index) {
+                            return Some((index, cell));
+                        }
                     }
                 }
             }
 
             // Get an iterator over the next chunk
-            if let Some((chunk_index, chunk)) = self.chunks.next() {
-                self.cache = from_chunk_to_cell_index(&self.chunk_dim, chunk_index);
-                self.cells = Some(chunk.indexed_iter());
-            } else {
-                return None;
+            for (chunk_index, chunk) in &mut self.chunks {
+                let index = from_chunk_to_cell_index(&self.chunk_dim, chunk_index);
+                let bounds = chunk_bounds(&self.chunk_dim, &index);
+                if self.bounds.overlaps_with(&bounds) {
+                    self.cache = index;
+                    // TODO: create a view over the array
+                    self.cells = Some(chunk.indexed_iter());
+                    continue 'outer;
+                }
             }
+
+            return None;
         }
     }
 }
@@ -94,8 +108,11 @@ pub struct IterMut<'i, A, const D: usize, Ic = isize> {
     /// Iterator over the cells of the current chunk
     cells: Option<ndarray::iter::IndexedIterMut<'i, A, Dim<[Ix; D]>>>,
 
-    /// Cache the index of the current chunk in cell coordinates
+    /// Cache the index of the current chunk
     cache: [isize; D],
+
+    /// Boundaries to look for cells
+    bounds: BoundingBox<D>,
 }
 
 /// Access next element of the iterator
@@ -108,25 +125,55 @@ where
     type Item = ([isize; D], &'i mut A);
 
     fn next(&mut self) -> Option<Self::Item> {
-        loop {
+        'outer: loop {
             // Do we have an iterator over the cells of the current chunk?
             if let Some(cells) = &mut self.cells {
                 // Try to find a cell that is not null
                 for (cell_index, cell) in cells.by_ref() {
                     if !cell.is_null() {
                         let index = compute_cell_index::<D>(&self.cache, cell_index);
-                        return Some((index, cell));
+                        // TODO: create a view over the array to remove this check
+                        if self.bounds.contains(&index) {
+                            return Some((index, cell));
+                        }
                     }
                 }
             }
 
             // Get an iterator over the next chunk
-            if let Some((chunk_index, chunk)) = self.chunks.next() {
-                self.cache = from_chunk_to_cell_index(&self.chunk_dim, chunk_index);
-                self.cells = Some(chunk.indexed_iter_mut());
-            } else {
-                return None;
+            for (chunk_index, chunk) in &mut self.chunks {
+                let index = from_chunk_to_cell_index(&self.chunk_dim, chunk_index);
+                let bounds = chunk_bounds(&self.chunk_dim, &index);
+                if self.bounds.overlaps_with(&bounds) {
+                    self.cache = index;
+                    // TODO: create a view over the array
+                    self.cells = Some(chunk.indexed_iter_mut());
+                    continue 'outer;
+                }
             }
+
+            return None;
         }
     }
+}
+
+/// Compute the bounding box of the chunk
+#[inline]
+fn chunk_bounds<const D: usize>(chunk_dim: &[Ix; D], chunk_index: &[isize; D]) -> BoundingBox<D>
+where
+    Dim<[Ix; D]>: Dimension,
+{
+    // prepare the two points
+    let mut start = [0; D];
+    let mut end = [0; D];
+
+    // for each dimension
+    for i in 0..D {
+        let d = chunk_dim[i] as isize;
+        let s = chunk_index[i] * d;
+        start[i] = s;
+        end[i] = s + d;
+    }
+
+    BoundingBox { start, end }
 }

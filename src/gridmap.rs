@@ -3,14 +3,14 @@
 /// Basic operations available on the GridMap
 pub mod base;
 
-/// Compute the boundaries of a gridmap
-pub mod boundaries;
-
 /// Indexing to access cells in the GridMap
 pub mod indexing;
 
 /// Iterator over the cells in the GridMap
 pub mod iterator;
+
+/// Bounding box
+pub mod bounding_box;
 
 use crate::{Chunk, cell::Cell};
 use hashbrown::HashMap;
