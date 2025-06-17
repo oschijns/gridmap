@@ -18,6 +18,16 @@ pub struct BoundingBox<const D: usize> {
     pub end: [isize; D],
 }
 
+/// Define the default bounding as covering the whole space
+impl<const D: usize> Default for BoundingBox<D> {
+    fn default() -> Self {
+        Self {
+            start: [isize::MIN; D],
+            end: [isize::MAX; D],
+        }
+    }
+}
+
 impl<A, const D: usize, Ic> GridMap<A, D, Ic>
 where
     A: Cell,

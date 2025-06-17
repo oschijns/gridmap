@@ -3,17 +3,19 @@
 use ndarray::{Dim, Dimension, IntoDimension, Ix};
 use num_traits::AsPrimitive;
 
-/// Iterator over all the cells of the chunks of the GridMap
-pub mod simple;
+/// Iterator over cells of the GridMap
+pub mod base;
 
-/// Iterator over all non-empty cells of the GridMap
-pub mod occupied;
-
-/// Iterator over all non-empty cells with corresponding index
+/// Iterator over cells with corresponding index
 pub mod indexed;
 
-/// Iterator over all non-empty cells within given boundaries with corresponding index
+/// Iterator over cells within given boundaries with corresponding index
 pub mod bounded;
+
+/// Include null cells in the iteration
+pub trait WithNulls {
+    fn with_nulls(&mut self) -> &Self;
+}
 
 /// Compute an index from a chunk index and a cell index.
 #[inline]

@@ -1,5 +1,6 @@
 //! Iterator over all non-empty cells of the GridMap
 
+use super::WithNulls;
 use crate::{
     cell::Cell,
     gridmap::{Chunk, GridMap},
@@ -16,6 +17,7 @@ where
         Iter {
             chunks: self.map.iter(),
             cells: None,
+            skip_null: false,
         }
     }
 
@@ -24,6 +26,7 @@ where
         IterMut {
             chunks: self.map.iter_mut(),
             cells: None,
+            skip_null: false,
         }
     }
 }
@@ -35,6 +38,37 @@ pub struct Iter<'i, A, const D: usize, Ic = isize> {
 
     /// Iterator over the cells of the current chunk
     cells: Option<ndarray::iter::Iter<'i, A, Dim<[Ix; D]>>>,
+
+    /// Specify if null cells should be skipped
+    skip_null: bool,
+}
+
+/// Mutable Iiterator over all the cells of the chunks of the GridMap
+pub struct IterMut<'i, A, const D: usize, Ic = isize> {
+    /// Iterator over the chunks
+    chunks: hashbrown::hash_map::IterMut<'i, [Ic; D], Chunk<A, D>>,
+
+    /// Iterator over the cells of the current chunk
+    cells: Option<ndarray::iter::IterMut<'i, A, Dim<[Ix; D]>>>,
+
+    /// Specify if null cells should be skipped
+    skip_null: bool,
+}
+
+/// Modify the iterator to include null cells in the iteration
+impl<'i, A, const D: usize, Ic> WithNulls for Iter<'i, A, D, Ic> {
+    fn with_nulls(&mut self) -> &Self {
+        self.skip_null = true;
+        self
+    }
+}
+
+/// Modify the iterator to include null cells in the iteration
+impl<'i, A, const D: usize, Ic> WithNulls for IterMut<'i, A, D, Ic> {
+    fn with_nulls(&mut self) -> &Self {
+        self.skip_null = true;
+        self
+    }
 }
 
 /// Access next element of the iterator
@@ -51,7 +85,7 @@ where
             if let Some(cells) = &mut self.cells {
                 // Try to find a cell that is not null
                 for cell in cells.by_ref() {
-                    if !cell.is_null() {
+                    if !self.skip_null || !cell.is_null() {
                         return Some(cell);
                     }
                 }
@@ -65,15 +99,6 @@ where
             }
         }
     }
-}
-
-/// Mutable Iiterator over all the cells of the chunks of the GridMap
-pub struct IterMut<'i, A, const D: usize, Ic = isize> {
-    /// Iterator over the chunks
-    chunks: hashbrown::hash_map::IterMut<'i, [Ic; D], Chunk<A, D>>,
-
-    /// Iterator over the cells of the current chunk
-    cells: Option<ndarray::iter::IterMut<'i, A, Dim<[Ix; D]>>>,
 }
 
 /// Access next element of the iterator
@@ -90,7 +115,7 @@ where
             if let Some(cells) = &mut self.cells {
                 // Try to find a cell that is not null
                 for cell in cells.by_ref() {
-                    if !cell.is_null() {
+                    if !self.skip_null || !cell.is_null() {
                         return Some(cell);
                     }
                 }
