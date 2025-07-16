@@ -9,6 +9,9 @@ pub mod rotate;
 /// Translate the index
 pub mod translate;
 
+/// Combine a translation, mirroring and rotation into a single object
+pub mod combine;
+
 /// Define a set of parameters to transform indexes
 pub trait Transform<const D: usize> {
     /// Apply a transformation to an index
@@ -30,4 +33,13 @@ impl<const D: usize> Transform<D> for &[&dyn Transform<D>] {
             trs.apply(index);
         }
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Identity;
+
+/// Identity doesn't apply an transformations
+impl<const D: usize> Transform<D> for Identity {
+    #[inline]
+    fn apply(&self, _index: &mut [isize; D]) {}
 }

@@ -12,25 +12,9 @@ pub mod iterator;
 /// Bounding box
 pub mod bounding_box;
 
-use crate::{Chunk, cell::Cell};
+use crate::{Chunk, GridMap, cell::Cell};
 use hashbrown::HashMap;
 use ndarray::{Array, Dim, Dimension, IntoDimension, Ix};
-
-/// GridMap of cells
-pub struct GridMap<A, const D: usize, Ic = isize>
-where
-    A: Cell,
-{
-    /// Dimensions of the chunks in the gridmap
-    chunk_dim: [Ix; D],
-
-    // TODO: check if the array should be boxed or not
-    /// Internal data
-    map: HashMap<[Ic; D], Chunk<A, D>>,
-
-    /// Empty cell for out-of-bound access
-    empty: A,
-}
 
 /// Create a new empty GridMap
 impl<A, const D: usize, Ic> Default for GridMap<A, D, Ic>

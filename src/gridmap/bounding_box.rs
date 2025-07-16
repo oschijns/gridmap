@@ -77,6 +77,15 @@ where
 }
 
 impl<const D: usize> BoundingBox<D> {
+    /// Get the dimensions of the bounding box along each of its axis
+    pub fn dimensions(&self) -> [usize; D] {
+        let mut dim = [0; D];
+        for (d, item) in dim.iter_mut().enumerate().take(D) {
+            *item = (self.end[d] - self.start[d]) as usize;
+        }
+        dim
+    }
+
     /// Check if the index is inside the specified boundaries
     pub fn contains(&self, index: &[isize; D]) -> bool {
         for (d, &i) in index.iter().enumerate() {
@@ -95,5 +104,20 @@ impl<const D: usize> BoundingBox<D> {
             }
         }
         true
+    }
+
+    /// Grow the bounding box with the provided index
+    pub fn grow_with(&mut self, index: &[isize; D]) {
+        for (d, &i) in index.iter().enumerate() {
+            let start = &mut self.start[d];
+            if i < *start {
+                *start = i;
+            }
+
+            let end = &mut self.end[d];
+            if *end < i {
+                *end = i;
+            }
+        }
     }
 }

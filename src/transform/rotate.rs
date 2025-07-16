@@ -4,9 +4,10 @@ use super::Transform;
 
 /// Define the four possible orientations
 #[repr(u8)]
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 pub enum Rotation {
     /// No rotation
+    #[default]
     None = 0,
 
     /// Rotate by 90°
@@ -21,17 +22,20 @@ pub enum Rotation {
 
 /// Define a rotation axis in 3D
 #[repr(u8)]
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Eq, Clone, Copy)]
 pub enum Axis3D {
+    #[default]
     X = 0,
     Y = 1,
     Z = 2,
 }
 
 /// Rotate the index
+#[derive(Debug, Default)]
 pub struct Rotate2(pub Rotation);
 
 /// Rotate the index
+#[derive(Debug, Default)]
 pub struct Rotate3 {
     /// Rotation to apply
     pub rotation: Rotation,
