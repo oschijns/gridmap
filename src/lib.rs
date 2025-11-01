@@ -17,7 +17,9 @@ pub mod transform;
 /// Utility functions
 pub mod util;
 
-/// GridMap of cells
+/// Main data structure provided by this crate.
+/// Represent a model composed of fixed sized cells which can grow arbitrary in
+/// any dimensions. This is akin to Minecraft's chunks system for storing voxel data.
 pub struct GridMap<A, const D: usize, Ic = isize> {
     /// Dimensions of the chunks in the gridmap
     chunk_dim: [Ix; D],
@@ -30,5 +32,9 @@ pub struct GridMap<A, const D: usize, Ic = isize> {
     empty: A,
 }
 
-/// Chunk of cells
+/// Represent a single chunk of cells.
 pub type Chunk<A, const D: usize> = Array<A, Dim<[Ix; D]>>;
+
+// re-export used crates
+pub use hashbrown;
+pub use ndarray;
