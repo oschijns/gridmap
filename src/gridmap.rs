@@ -46,12 +46,19 @@ where
     }
 
     /// Create a new GridMap with a predefined capacity
+    #[inline]
     pub fn with_capacity(chunk_dim: [Ix; D], capacity: usize) -> Self {
         Self {
             chunk_dim,
             map: HashMap::with_capacity(capacity),
             empty: A::NULL,
         }
+    }
+
+    /// Return the chunks' dimensions
+    #[inline]
+    pub fn get_chunks_dimensions(&self) -> [Ix; D] {
+        self.chunk_dim
     }
 }
 
