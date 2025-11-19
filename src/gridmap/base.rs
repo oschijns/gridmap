@@ -1,21 +1,18 @@
 //! Basic operations available on the GridMap
 
 use super::GridMap;
-use crate::{Chunk, cell::Cell, gridmap::make_chunk, util::is_chunk_empty};
-use core::{hash::Hash, ops::IndexMut};
+use crate::{Chunk, Index, cell::Cell, gridmap::make_chunk, util::is_chunk_empty};
+use core::ops::IndexMut;
 use ndarray::{Dim, Dimension, IntoDimension, Ix};
-use num_traits::{AsPrimitive, ConstZero};
 
 /// Access a cell in the gridmap
-impl<A, const D: usize, Ic> GridMap<A, D, Ic>
+impl<A, const D: usize> GridMap<A, D>
 where
     A: Cell,
 {
-    pub fn get<I>(&self, index: &[I; D]) -> A
+    pub fn get<I>(&self, index: &[Index; D]) -> A
     where
         A: Clone,
-        Ic: Eq + Hash + ConstZero + From<isize>,
-        I: AsPrimitive<isize>,
         [Ix; D]: IntoDimension<Dim = Dim<[Ix; D]>>,
         Dim<[Ix; D]>: Dimension,
     {
@@ -25,15 +22,13 @@ where
 }
 
 /// Set a cell in the gridmap
-impl<A, const D: usize, Ic> GridMap<A, D, Ic>
+impl<A, const D: usize> GridMap<A, D>
 where
     A: Cell,
 {
-    pub fn set<I>(&mut self, index: &[I; D], cell: A)
+    pub fn set<I>(&mut self, index: &[Index; D], cell: A)
     where
         A: Default,
-        Ic: Eq + Hash + ConstZero + From<isize>,
-        I: AsPrimitive<isize>,
         [Ix; D]: IntoDimension<Dim = Dim<[Ix; D]>>,
         Dim<[Ix; D]>: Dimension,
     {
@@ -67,15 +62,14 @@ where
     }
 }
 
-impl<A, const D: usize, Ic> GridMap<A, D, Ic>
+impl<A, const D: usize> GridMap<A, D>
 where
     A: Cell,
 {
     /// Access a chunk
     #[inline]
-    pub fn get_chunk<I>(&self, chunk_index: &[Ic; D]) -> Option<&Chunk<A, D>>
+    pub fn get_chunk(&self, chunk_index: &[Index; D]) -> Option<&Chunk<A, D>>
     where
-        Ic: Eq + Hash,
         Dim<[Ix; D]>: Dimension,
     {
         self.map.get(chunk_index)
@@ -83,18 +77,16 @@ where
 
     /// Access a chunk as mutable
     #[inline]
-    pub fn get_chunk_mut<I>(&mut self, chunk_index: &[Ic; D]) -> Option<&mut Chunk<A, D>>
+    pub fn get_chunk_mut(&mut self, chunk_index: &[Index; D]) -> Option<&mut Chunk<A, D>>
     where
-        Ic: Eq + Hash,
         Dim<[Ix; D]>: Dimension,
     {
         self.map.get_mut(chunk_index)
     }
 
     /// Check if the chunk at given chunk index should be freed
-    pub fn try_free_chunk<I>(&mut self, chunk_index: &[Ic; D]) -> bool
+    pub fn try_free_chunk(&mut self, chunk_index: &[Index; D]) -> bool
     where
-        Ic: Eq + Hash,
         Dim<[Ix; D]>: Dimension,
     {
         // if the chunk does not exists, there is nothing to do
@@ -112,7 +104,6 @@ where
     #[inline]
     pub fn prune(&mut self)
     where
-        Ic: Eq + Hash,
         Dim<[Ix; D]>: Dimension,
     {
         self.map.retain(|_, chunk| !is_chunk_empty(chunk));

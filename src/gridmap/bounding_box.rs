@@ -1,9 +1,8 @@
 //! Bounding box module
 
 use crate::{cell::Cell, gridmap::GridMap, transform::Transform};
-use core::{hash::Hash, ops::IndexMut};
+use core::ops::IndexMut;
 use ndarray::{Dim, Dimension, IntoDimension, Ix};
-use num_traits::{AsPrimitive, ConstZero};
 
 /// Compute the boundaries of the gridmap
 pub mod boundaries;
@@ -28,7 +27,7 @@ impl<const D: usize> Default for BoundingBox<D> {
     }
 }
 
-impl<A, const D: usize, Ic> GridMap<A, D, Ic>
+impl<A, const D: usize> GridMap<A, D>
 where
     A: Cell,
 {
@@ -36,7 +35,6 @@ where
     pub fn copy_to(&self, target: &mut Self, transforms: &[&dyn Transform<D>])
     where
         A: Default + Copy,
-        Ic: Eq + Hash + ConstZero + From<isize> + AsPrimitive<isize>,
         [Ix; D]: IntoDimension<Dim = Dim<[Ix; D]>>,
         Dim<[Ix; D]>: Dimension,
     {
@@ -59,7 +57,6 @@ where
         bounding_box: &BoundingBox<D>,
     ) where
         A: Default + Copy,
-        Ic: Eq + Hash + ConstZero + From<isize> + AsPrimitive<isize>,
         [Ix; D]: IntoDimension<Dim = Dim<[Ix; D]>>,
         Dim<[Ix; D]>: Dimension,
     {

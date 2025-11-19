@@ -2,20 +2,19 @@
 
 use super::{WithNulls, compute_cell_index, from_chunk_to_cell_index};
 use crate::{
+    Index,
     cell::Cell,
     gridmap::{Chunk, GridMap},
 };
 use ndarray::{Dim, Dimension, Ix};
-use num_traits::{AsPrimitive, ConstZero};
 
 /// Get iterator over the grid map
-impl<A, const D: usize, Ic> GridMap<A, D, Ic>
+impl<A, const D: usize> GridMap<A, D>
 where
-    Ic: ConstZero,
     A: Cell,
 {
     /// Create an iterator over all the cells of the chunks of the GridMap
-    pub fn indexed_iter(&self) -> Iter<'_, A, D, Ic> {
+    pub fn indexed_iter(&self) -> Iter<'_, A, D> {
         Iter {
             chunks: self.map.iter(),
             cells: None,
@@ -26,7 +25,7 @@ where
     }
 
     /// Create an iterator over all the cells of the chunks of the GridMap
-    pub fn indexed_iter_mut(&mut self) -> IterMut<'_, A, D, Ic> {
+    pub fn indexed_iter_mut(&mut self) -> IterMut<'_, A, D> {
         IterMut {
             chunks: self.map.iter_mut(),
             cells: None,
@@ -38,9 +37,9 @@ where
 }
 
 /// Iterator over all the cells of the chunks of the GridMap
-pub struct Iter<'i, A, const D: usize, Ic = isize> {
+pub struct Iter<'i, A, const D: usize> {
     /// Iterator over the chunks
-    chunks: hashbrown::hash_map::Iter<'i, [Ic; D], Chunk<A, D>>,
+    chunks: hashbrown::hash_map::Iter<'i, [Index; D], Chunk<A, D>>,
 
     /// Iterator over the cells of the current chunk
     cells: Option<ndarray::iter::IndexedIter<'i, A, Dim<[Ix; D]>>>,
@@ -52,13 +51,13 @@ pub struct Iter<'i, A, const D: usize, Ic = isize> {
     chunk_dim: [Ix; D],
 
     /// Cache the index of the current chunk in cell coordinates
-    cache: [isize; D],
+    cache: [Index; D],
 }
 
 /// Mutable Iiterator over all the cells of the chunks of the GridMap
-pub struct IterMut<'i, A, const D: usize, Ic = isize> {
+pub struct IterMut<'i, A, const D: usize> {
     /// Iterator over the chunks
-    chunks: hashbrown::hash_map::IterMut<'i, [Ic; D], Chunk<A, D>>,
+    chunks: hashbrown::hash_map::IterMut<'i, [Index; D], Chunk<A, D>>,
 
     /// Iterator over the cells of the current chunk
     cells: Option<ndarray::iter::IndexedIterMut<'i, A, Dim<[Ix; D]>>>,
@@ -70,11 +69,11 @@ pub struct IterMut<'i, A, const D: usize, Ic = isize> {
     chunk_dim: [Ix; D],
 
     /// Cache the index of the current chunk in cell coordinates
-    cache: [isize; D],
+    cache: [Index; D],
 }
 
 /// Modify the iterator to include null cells in the iteration
-impl<'i, A, const D: usize, Ic> WithNulls for Iter<'i, A, D, Ic> {
+impl<'i, A, const D: usize> WithNulls for Iter<'i, A, D> {
     fn with_nulls(&mut self) -> &Self {
         self.skip_null = true;
         self
@@ -82,7 +81,7 @@ impl<'i, A, const D: usize, Ic> WithNulls for Iter<'i, A, D, Ic> {
 }
 
 /// Modify the iterator to include null cells in the iteration
-impl<'i, A, const D: usize, Ic> WithNulls for IterMut<'i, A, D, Ic> {
+impl<'i, A, const D: usize> WithNulls for IterMut<'i, A, D> {
     fn with_nulls(&mut self) -> &Self {
         self.skip_null = true;
         self
@@ -90,13 +89,12 @@ impl<'i, A, const D: usize, Ic> WithNulls for IterMut<'i, A, D, Ic> {
 }
 
 /// Access next element of the iterator
-impl<'i, A, const D: usize, Ic> Iterator for Iter<'i, A, D, Ic>
+impl<'i, A, const D: usize> Iterator for Iter<'i, A, D>
 where
     A: Cell,
-    Ic: AsPrimitive<isize>,
     Dim<[Ix; D]>: Dimension,
 {
-    type Item = ([isize; D], &'i A);
+    type Item = ([Index; D], &'i A);
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -123,13 +121,12 @@ where
 }
 
 /// Access next element of the iterator
-impl<'i, A, const D: usize, Ic> Iterator for IterMut<'i, A, D, Ic>
+impl<'i, A, const D: usize> Iterator for IterMut<'i, A, D>
 where
     A: Cell,
-    Ic: AsPrimitive<isize>,
     Dim<[Ix; D]>: Dimension,
 {
-    type Item = ([isize; D], &'i mut A);
+    type Item = ([Index; D], &'i mut A);
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {

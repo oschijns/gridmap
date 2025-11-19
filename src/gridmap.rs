@@ -12,12 +12,15 @@ pub mod iterator;
 /// Bounding box
 pub mod bounding_box;
 
-use crate::{Chunk, GridMap, cell::Cell};
+use crate::{GridMap, cell::Cell};
 use hashbrown::HashMap;
 use ndarray::{Array, Dim, Dimension, IntoDimension, Ix};
 
+/// Represent a single chunk of cells.
+pub type Chunk<A, const D: usize> = Array<A, Dim<[Ix; D]>>;
+
 /// Create a new empty GridMap
-impl<A, const D: usize, Ic> Default for GridMap<A, D, Ic>
+impl<A, const D: usize> Default for GridMap<A, D>
 where
     A: Cell,
 {
@@ -31,7 +34,7 @@ where
     }
 }
 
-impl<A, const D: usize, Ic> GridMap<A, D, Ic>
+impl<A, const D: usize> GridMap<A, D>
 where
     A: Cell,
 {

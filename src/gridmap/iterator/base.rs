@@ -8,12 +8,12 @@ use crate::{
 use ndarray::{Dim, Dimension, Ix};
 
 /// Get iterator over the grid map
-impl<A, const D: usize, Ic> GridMap<A, D, Ic>
+impl<A, const D: usize> GridMap<A, D>
 where
     A: Cell,
 {
     /// Create an iterator over all the cells of the chunks of the GridMap
-    pub fn iter(&self) -> Iter<'_, A, D, Ic> {
+    pub fn iter(&self) -> Iter<'_, A, D> {
         Iter {
             chunks: self.map.iter(),
             cells: None,
@@ -22,7 +22,7 @@ where
     }
 
     /// Create an iterator over all the cells of the chunks of the GridMap
-    pub fn iter_mut(&mut self) -> IterMut<'_, A, D, Ic> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, A, D> {
         IterMut {
             chunks: self.map.iter_mut(),
             cells: None,

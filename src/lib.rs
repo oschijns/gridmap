@@ -2,8 +2,6 @@
 
 /// Use alloc crate for no_std support
 extern crate alloc;
-use hashbrown::HashMap;
-use ndarray::{Array, Dim, Ix};
 
 /// GridMap of cells
 pub mod gridmap;
@@ -17,23 +15,27 @@ pub mod transform;
 /// Utility functions
 pub mod util;
 
+use gridmap::Chunk;
+use hashbrown::HashMap;
+use ndarray::Ix;
+
+/// Type used to index a gridmap
+pub type Index = isize;
+
 /// Main data structure provided by this crate.
 /// Represent a model composed of fixed sized cells which can grow arbitrary in
 /// any dimensions. This is akin to Minecraft's chunks system for storing voxel data.
-pub struct GridMap<A, const D: usize, Ic = isize> {
+pub struct GridMap<A, const D: usize> {
     /// Dimensions of the chunks in the gridmap
     chunk_dim: [Ix; D],
 
     // TODO: check if the array should be boxed or not
     /// Internal data
-    map: HashMap<[Ic; D], Chunk<A, D>>,
+    map: HashMap<[Index; D], Chunk<A, D>>,
 
     /// Empty cell for out-of-bound access
     empty: A,
 }
-
-/// Represent a single chunk of cells.
-pub type Chunk<A, const D: usize> = Array<A, Dim<[Ix; D]>>;
 
 // re-export used crates
 pub use hashbrown;

@@ -3,9 +3,8 @@
 use super::BoundingBox;
 use crate::{cell::Cell, gridmap::GridMap};
 use ndarray::{Dim, Dimension, IntoDimension, Ix};
-use num_traits::AsPrimitive;
 
-impl<A, const D: usize, Ic> GridMap<A, D, Ic>
+impl<A, const D: usize> GridMap<A, D>
 where
     A: Cell,
 {
@@ -13,7 +12,6 @@ where
     pub fn boundaries(&self) -> BoundingBox<D>
     where
         A: Clone,
-        Ic: AsPrimitive<isize>,
         Dim<[Ix; D]>: Dimension,
     {
         // Prepare the two points to find.
@@ -25,7 +23,7 @@ where
             // For each dimension, check if the chunk is further away.
             // If so, register it as a new extreme point.
             for d in 0..D {
-                let c = chunk_index[d].as_();
+                let c = chunk_index[d];
 
                 let p_0 = &mut chunk_0[d];
                 *p_0 = c.min(*p_0);
@@ -44,7 +42,7 @@ where
             // For each dimension, check if the chunk is an extreme one.
             // Check the cells in the chunk to find the extreme cell.
             for d in 0..D {
-                let c = chunk_index[d].as_();
+                let c = chunk_index[d];
 
                 // Check if the chunk is extreme towards -Inf
                 let l_0 = chunk_0[d];
