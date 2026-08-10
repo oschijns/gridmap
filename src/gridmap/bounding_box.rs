@@ -77,16 +77,16 @@ impl<const D: usize> BoundingBox<D> {
     /// Get the dimensions of the bounding box along each of its axis
     pub fn dimensions(&self) -> [usize; D] {
         let mut dim = [0; D];
-        for (d, item) in dim.iter_mut().enumerate().take(D) {
-            *item = (self.end[d] - self.start[d]) as usize;
+        for ((&s, &e), item) in self.start.iter().zip(self.end.iter()).zip(dim.iter_mut()) {
+            *item = (e - s) as usize;
         }
         dim
     }
 
     /// Check if the index is inside the specified boundaries
     pub fn contains(&self, index: &[isize; D]) -> bool {
-        for (d, &i) in index.iter().enumerate() {
-            if !(self.start[d] <= i && i < self.end[d]) {
+        for ((&s, &e), &i) in self.start.iter().zip(self.end.iter()).zip(index) {
+            if !(s <= i && i < e) {
                 return false;
             }
         }
@@ -96,7 +96,11 @@ impl<const D: usize> BoundingBox<D> {
     /// Check if the two bounding boxes overlap
     pub fn overlaps_with(&self, other: &Self) -> bool {
         for d in 0..D {
-            if !(self.start[d] <= other.end[d] && other.start[d] <= self.end[d]) {
+            let ss = self.start[d];
+            let se = self.end[d];
+            let os = other.start[d];
+            let oe = other.end[d];
+            if !(ss <= oe && os <= se) {
                 return false;
             }
         }
@@ -105,31 +109,26 @@ impl<const D: usize> BoundingBox<D> {
 
     /// Grow the bounding box with the provided index
     pub fn grow_with(&mut self, index: &[isize; D]) {
-        for (d, &i) in index.iter().enumerate() {
-            let start = &mut self.start[d];
-            if i < *start {
-                *start = i;
+        for ((s, e), &i) in self.start.iter_mut().zip(self.end.iter_mut()).zip(index) {
+            if *s > i {
+                *s = i;
             }
-
-            let end = &mut self.end[d];
-            if *end < i {
-                *end = i;
+            if *e < i {
+                *e = i;
             }
         }
     }
 
     /// Grow the bounding box with the other bounding box
     pub fn grow_with_box(&mut self, other: &Self) {
-        for (d, &i) in other.start.iter().enumerate() {
-            let start = &mut self.start[d];
-            if i < *start {
-                *start = i;
+        for (a, b) in self.start.iter_mut().zip(other.start) {
+            if *a > b {
+                *a = b;
             }
         }
-        for (d, &i) in other.end.iter().enumerate() {
-            let end = &mut self.end[d];
-            if *end < i {
-                *end = i;
+        for (a, b) in self.end.iter_mut().zip(other.end) {
+            if *a < b {
+                *a = b;
             }
         }
     }
