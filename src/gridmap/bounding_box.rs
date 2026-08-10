@@ -8,7 +8,7 @@ use ndarray::{Dim, Dimension, IntoDimension, Ix};
 pub mod boundaries;
 
 /// Boundaries
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct BoundingBox<const D: usize> {
     /// starting point of the box
     pub start: [isize; D],
