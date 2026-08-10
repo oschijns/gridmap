@@ -117,4 +117,20 @@ impl<const D: usize> BoundingBox<D> {
             }
         }
     }
+
+    /// Grow the bounding box with the other bounding box
+    pub fn grow_with_box(&mut self, other: &Self) {
+        for (d, &i) in other.start.iter().enumerate() {
+            let start = &mut self.start[d];
+            if i < *start {
+                *start = i;
+            }
+        }
+        for (d, &i) in other.end.iter().enumerate() {
+            let end = &mut self.end[d];
+            if *end < i {
+                *end = i;
+            }
+        }
+    }
 }
